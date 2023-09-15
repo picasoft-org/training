@@ -1,0 +1,8 @@
+.custom-header {
+    border-bottom-style: ridge;
+    border-bottom-color: #007bff;
+}
+
+h1 {
+    padding-bottom: 30px !important
+}

@@ -1,0 +1,67 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<!-- (1)共通にしたいheadをfragment化する -->
+
+<head th:fragment="meta_header(title,links,scripts)">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <!-- 全画面共通のcssを定義します -->
+  <link rel="stylesheet" th:href="@{/css/common/bootstrap.min.css}" />
+  <link rel="stylesheet" th:href="@{/css/common/bootstrap-vue.min.css}" />
+  <link rel="stylesheet" th:href="@{/css/common/bootstrap-vue-icons.min.css}" />
+  <link rel="stylesheet" th:href="@{/css/common/common.css}" />
+  <!-- 各画面専用のcssを定義します -->
+  <th:block th:replace="${links}" />
+  <!-- 全画面共通のjavascriptを定義します -->
+  <script th:src="@{/js/common/jquery.min.js}"></script>
+  <script th:src="@{/js/common/vue.min.js}"></script>
+  <script th:src="@{/js/common/bootstrap.min.js}"></script>
+  <script th:src="@{/js/common/axios.min.js}"></script>
+  <script th:src="@{/js/common/bootstrap-vue.min.js}"></script>
+  <script th:src="@{/js/common/bootstrap-vue-icons.min.js}"></script>
+  <script th:src="@{/js/common/date_fns.min.js}"></script>
+  <!-- (3)タイトルのフォーマット -->
+  <title th:text="'社内教育システム ー ' + ${title}"></title>
+
+  <!-- 各画面専用のjavascriptを定義します -->
+  <!-- <th:block th:replace="${scripts} ?: _" /> -->
+</head>
+
+<body>
+  <!-- (5)body内で共通化したい部品をfragment化する -->
+  <header th:fragment="header">
+    <h1 class="custom-header mt-4"><a th:href="@{'/'}">　図書館総合管理システム</a></h1>
+  </header>
+
+  <div th:fragment="menu" sm="2">
+    <div id="side-munu">
+      <b-button @click="showSideBar" variant="info"><b-icon icon="menu-button-wide" variant="green"></b-icon></b-button>
+      <b-sidebar id="sidebar-no-header" aria-labelledby="sidebar-no-header-title" no-header shadow>
+        <template #default="{ hide }">
+          <div class="p-3">
+            <h4 id="sidebar-no-header-title">目次</h4>
+            <nav class="mb-3">
+              <b-nav vertical>
+                <b-nav-item th:href="@{'/books/'}" @click="hide">ブック管理</b-nav-item>
+                <b-nav-item th:href="@{'/members/'}" @click="hide">会員管理</b-nav-item>
+              </b-nav>
+            </nav>
+            <b-button variant="info" block @click="hide">閉じる</b-button>
+          </div>
+        </template>
+      </b-sidebar>
+    </div>
+    <script>
+      const v = new Vue({
+        el: '#side-munu',
+        date: {
+        },
+        methods:{
+          showSideBar() {
+            this.$root.$emit('bv::toggle::collapse', 'sidebar-no-header');
+          }
+        }
+      });
+    </script>
+  </div>
+</body>
+
+</html>

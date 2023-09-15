@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!-- (1)共通headerで置き換える -->
+
+<head th:replace="~{common/common :: meta_header('ブック',~{::link},~{::script})}">
+    <!-- (2)このページ固有で読み込むCSS/JS -->
+    <link rel="stylesheet" th:href="@{/css/book/book-list.css}" />
+</head>
+
+<body>
+    <!-- ヘッダの読み込む -->
+    <div th:replace="~{common/common :: header}"></div>
+    <!-- メニューの読み込む -->
+    <div th:replace="~{common/common :: menu}"></div>
+    <div class="text-center">
+        <h1>ブック管理一覧画面</h1>
+    </div>
+    <div id="book-list" v-cloak>
+        TODO
+    </div>
+    <script>
+        const vBookList = new Vue({
+            el: "#book-list",
+            data: {
+            },
+            methods: {
+            },
+            async mounted() {
+            }
+        })
+    </script>
+</body>
