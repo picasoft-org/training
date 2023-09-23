@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.co.picasoft.training.common.mapper.BooktableMapper">
+    <select id="findAll" resultType="jp.co.picasoft.training.common.bean.Booktable">
+        SELECT `booktable`.`id`,
+        `booktable`.`book_name`,
+        `booktable`.`volume_num`,
+        `booktable`.`author_name`,
+        `booktable`.`published_date`
+        FROM `training`.`booktable`
+        WHERE
+        delete_flag = false
+    </select>
+    <select id="findById" resultType="jp.co.picasoft.training.common.bean.Booktable">
+        SELECT `booktable`.`id`,
+        `booktable`.`book_name`,
+        `booktable`.`volume_num`,
+        `booktable`.`author_name`,
+        `booktable`.`published_date`
+        FROM `training`.`booktable`
+        WHERE
+        id = #{id}
+        AND delete_flag = false
+    </select>
+    <select id="findBooksByCondistion" resultType="jp.co.picasoft.training.common.bean.Booktable">
+        SELECT `booktable`.`id`,
+        `booktable`.`book_name`,
+        `booktable`.`volume_num`,
+        `booktable`.`author_name`,
+        `booktable`.`published_date`
+        FROM `training`.`booktable`
+        WHERE
+        delete_flag = false
+        <if test="bookName !=null and bookName != ''">
+            AND book_name like CONCAT('%', #{bookName}, '%')
+        </if>
+        <if test="authorName !=null and authorName != ''">
+            AND author_name like CONCAT('%', #{authorName}, '%')
+        </if>
+        <if test="publishedDate !=null">
+            AND published_date = #{publishedDate}
+        </if>
+    </select>
+    <insert id="save" parameterType="jp.co.picasoft.training.common.bean.Booktable">
+        INSERT INTO `training`.`booktable`(
+            book_name,
+            volume_num,
+            author_name,
+            published_date,
+            delete_flag
+        )
+        VALUES
+        (
+            #{bookName},
+            #{volumeNum},
+            #{authorName},
+            #{publishedDate},
+            false
+        )
+    </insert>
+    <delete id="delete" parameterType="jp.co.picasoft.training.common.bean.Booktable">
+        DELETE
+        FROM `training`.`booktable`
+        <where>
+            <foreach collection="books"  item="book" separator=" AND ">
+                id = #{book.id}
+            </foreach>
+        </where>
+    </delete>
+    <update id="update" parameterType="jp.co.picasoft.training.common.bean.Booktable">
+        UPDATE `training`.`booktable`
+        <set>
+            <if test="bookName != null">`book_name`=#{bookName},</if>
+            <if test="volumeNum != null">`volume_num`=#{volumeNum},</if>
+            <if test="authorName != null">`author_name`=#{authorName},</if>
+            <if test="publishedDate != null">`published_date`=#{publishedDate}</if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+</mapper>

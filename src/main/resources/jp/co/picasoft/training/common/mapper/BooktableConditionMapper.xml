@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.co.picasoft.training.common.mapper.BooktableConditionMapper">
+    <select id="findAll" resultType="jp.co.picasoft.training.common.bean.BooktableCondition">
+        SELECT
+        `booktable_condition`.`id`,
+        `booktable_condition`.`condition_name`,
+        `booktable_condition`.`book_name_condition`,
+        `booktable_condition`.`author_name_condition`,
+        `booktable_condition`.`published_date_condition`
+        FROM `training`.`booktable_condition`
+        WHERE
+        delete_flag = false
+    </select>
+    <select id="findById" resultType="jp.co.picasoft.training.common.bean.BooktableCondition">
+        SELECT
+        `booktable_condition`.`id`,
+        `booktable_condition`.`condition_name`,
+        `booktable_condition`.`book_name_condition`,
+        `booktable_condition`.`author_name_condition`,
+        `booktable_condition`.`published_date_condition`
+        FROM `training`.`booktable_condition`
+        WHERE
+        id = #{id}
+        AND delete_flag = false
+    </select>
+    <insert id="save" parameterType="jp.co.picasoft.training.common.bean.BooktableCondition">
+        INSERT INTO `training`.`booktable_condition`(
+            condition_name,
+            book_name_condition,
+            author_name_condition,
+            published_date_condition,
+            delete_flag
+        )
+        VALUES
+        (
+            #{conditionName},
+            #{bookNameCondition},
+            #{authorNameCondition},
+            #{publishedDateCondition},
+            false
+        )
+    </insert>
+    <select id="getCount" resultType="int">
+        SELECT
+        COUNT(`booktable_condition`.`id`)
+        FROM `training`.`booktable_condition`
+        WHERE
+        delete_flag = false
+    </select>
+</mapper>
