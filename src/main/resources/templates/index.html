@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="~{common/common :: meta_header('ホーム',~{::link},~{::script})}">
+<head th:replace="common/common :: meta_header('ホーム',~{::link},~{::script})">
     <link rel="stylesheet" th:href="@{/css/index/index.css}" />
 </head>
 
 <body>
     <!-- ヘッダの読み込む -->
-    <div th:replace="~{common/common :: header}"></div>
+    <div th:replace="common/common :: header"></div>
     <!-- メニューの読み込む -->
-    <div th:replace="~{common/common :: menu}"></div>
+    <div th:replace="common/common :: menu"></div>
     
     <div class="row justify-content-md-center">
         <div sm="8">
             <h1 style="text-indent: 2rem;">
-                本システムは図書館総合管理システムとします。<br>
+                本システムは社内教育システムとします。<br>
             </h1>
             <p class="text-danger">※左のメニューから各サブシステムに遷移してください。</p>
         </div>

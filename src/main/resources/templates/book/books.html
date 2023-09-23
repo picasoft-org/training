@@ -16,16 +16,386 @@
         <h1>ブック管理一覧画面</h1>
     </div>
     <div id="book-list" v-cloak>
-        TODO
+        <b-overlay :show="isBusy" rounded="sm">
+            <b-container fluid class="col-sm-6 border border-dark p-3" style="border: solid;">
+                <b-alert :show="dismissCountDown" v-bind:variant="showAlertMsgType" dismissible
+                    @dismissed="distroySearchMsgsAlert" @dismiss-count-down="countDownChanged">
+                    <ul class="mb-0 pl-3">
+                        <li v-for="msg in searchMsgs">{{ msg }}</li>
+                    </ul>
+                    <b-progress variant="primary" :max="dismissSecs" :value="dismissCountDown"
+                        height="4px"></b-progress>
+                </b-alert>
+                <b-row class="my-1">
+                    <b-col sm="3">
+                        <label for="bookName">ブック名：</label>
+                    </b-col>
+                    <b-col sm="9">
+                        <b-form-input id="bookName" type="text" v-model="searchInfo.bookName"></b-form-input>
+                    </b-col>
+                </b-row>
+                <b-row class="my-1">
+                    <b-col sm="3">
+                        <label for="authorName">著作者：</label>
+                    </b-col>
+                    <b-col sm="9">
+                        <b-form-input id="authorName" type="text" v-model="searchInfo.authorName"></b-form-input>
+                    </b-col>
+                </b-row>
+                <b-row class="my-1">
+                    <b-col sm="3">
+                        <label for="publishedDate">発行年月日：</label>
+                    </b-col>
+                    <b-col sm="9">
+                        <b-form-input id="publishedDate" type="date" v-model="searchInfo.publishedDate"></b-form-input>
+                    </b-col>
+                </b-row>
+                <b-row class="my-1 justify-content-md-right">
+                    <b-col sm="12" class="text-right">
+                        <b-button @click="saveSearchConditions" variant="info"><b-icon-save></b-icon-save>
+                            検索条件保存</b-button>
+                        <b-button @click="selectCondition" variant="info"><b-icon-eyeglasses></b-icon-eyeglasses>
+                            検索条件選択</b-button>
+                        <b-button @click="doSearch" variant="info"><b-icon-search></b-icon-search> 検索</b-button>
+                        <b-modal id="bv-modal-save-conditions" title="検索条件" size="xm" ok-title="保存" cancel-title="閉じる"
+                            @show="resetSaveConditionModal" @ok="saveCondition">
+                            <b-alert v-model="showSaveConditionAlertMsg" v-bind:variant="saveConditionAlertMsgType"
+                                dismissible @dismissed="distroySaveConditionAlertAlert">
+                                <ul class="mb-0 pl-3">
+                                    <li v-for="msg in saveConditionMsgs">{{ msg }}</li>
+                                </ul>
+                            </b-alert>
+                            <b-row class="my-1 justify-content-md-right">
+                                <b-col sm="4">
+                                    <label for="inputConditionName">検索条件名称</label>
+                                </b-col>
+                                <b-col sm="8">
+                                    <b-form-input id="inputConditionName" v-model="conditionName"
+                                        required></b-form-input>
+                                </b-col>
+                            </b-row>
+                        </b-modal>
+                        <b-modal id="bv-modal-search-conditions" size="xl" hide-footer>
+                            <template #modal-title>
+                                検索条件
+                            </template>
+                            <div>
+                                <b-container class="justify-content-md-center">
+                                    <b-table hover :fields="conditionFields" :items="conditionItems"
+                                        :busy="isBusyForCondition" class="mt-3" outlined bordered="true"
+                                        @row-dblclicked="handlerDoubleClick">
+                                    </b-table>
+                                </b-container>
+                            </div>
+                            <div sm="12" class="text-right">
+                                <p sm="9"></p>
+                                <b-button class="mt-3 col-sm-3"
+                                    @click="$bvModal.hide('bv-modal-search-conditions')"><b-icon
+                                        icon="x-square"></b-icon> 閉じる</b-button>
+                            </div>
+                        </b-modal>
+                    </b-col>
+                </b-row>
+            </b-container>
+            <b-container class="justify-content-md-center">
+                <div class="pt-4">
+                    <b-button v-b-modal.bv-modal-create-book variant="info"><b-icon-plus-square></b-icon-plus-square>
+                        ブック登録</b-button>
+                    <b-modal id="bv-modal-create-book" title="ブック登録" size="xm" ok-title="保存" cancel-title="閉じる"
+                        @show="resetSaveBookModal" @ok="createBook" @cancel="cancelCreateBook">
+                        <b-alert v-model="showSaveBookAlertMsg" v-bind:variant="saveBookAlertMsgType" dismissible
+                            @dismissed="distroySaveBookAlertAlert">
+                            <ul class="mb-0 pl-3">
+                                <li v-for="msg in saveBookMsgs">{{ msg }}</li>
+                            </ul>
+                        </b-alert>
+                        <b-container class="my-1 justify-content-md-right">
+                            <b-row class="my-1">
+                                <b-col sm="4">
+                                    <label for="inputBookName">ブック名：</label>
+                                </b-col>
+                                <b-col sm="8">
+                                    <b-form-input id="inputBookName" v-model="insertBean.bookName"></b-form-input>
+                                </b-col>
+                            </b-row>
+                            <b-row class="my-1">
+                                <b-col sm="4">
+                                    <label for="inputVolumeNum">ページ数：</label>
+                                </b-col>
+                                <b-col sm="8">
+                                    <b-form-input id="inputVolumeNum" v-model="insertBean.volumeNum"></b-form-input>
+                                </b-col>
+                            </b-row>
+                            <b-row class="my-1">
+                                <b-col sm="4">
+                                    <label for="inputAuthorName">著作者：</label>
+                                </b-col>
+                                <b-col sm="8">
+                                    <b-form-input id="inputAuthorName" v-model="insertBean.authorName"></b-form-input>
+                                </b-col>
+                            </b-row>
+                            <b-row class="my-1">
+                                <b-col sm="4">
+                                    <label for="inputPublishedDate">発行年月日：</label>
+                                </b-col>
+                                <b-col sm="8">
+                                    <b-form-input id="inputPublishedDate" type="date"
+                                        v-model="insertBean.publishedDate"></b-form-input>
+                                </b-col>
+                            </b-row>
+                        </b-container>
+                    </b-modal>
+                    <b-button @click="deleteBooks" v-bind:disabled="deleteInactiveFlag" variant="info"><b-icon-x-square
+                            variant="danger"></b-icon-x-square> 削除</b-button>
+                </div>
+                <b-table :fields="fields" :items="items" selectable select-mode="multi" class="mt-3" bordered="true"
+                    @row-selected="onRowSelected">
+                    <template #cell(selected)="{ rowSelected }">
+                        <template v-if="rowSelected">
+                            <b-icon icon="check-square"></b-icon>
+                        </template>
+                        <template v-else>
+                            <b-icon icon="square"></b-icon>
+                        </template>
+                    </template>
+                    <template #cell(bookName)="{item}">
+                        <a href="javascript:void(0);" @click="editBook(item.id);">{{ item.bookName }}</a>
+                    </template>
+                </b-table>
+            </b-container>
+        </b-overlay>
     </div>
     <script>
         const vBookList = new Vue({
             el: "#book-list",
             data: {
+                searchInfo: {
+                    bookName: '11',
+                    authorName: '',
+                    publishedDate: undefined
+                },
+                insertBean: {
+                    bookName: '',
+                    volumeNum: '',
+                    authorName: '',
+                    publishedDate: ''
+                },
+                isBusy: false,
+                fields: [
+                    { key: 'selected', label: "削除", thStyle: { width: "8%" } },
+                    { key: 'bookName', label: 'ブック名', thStyle: { width: "32%" } },
+                    { key: 'authorName', label: '著作者', thStyle: { width: "30%" } },
+                    { key: 'volumeNum', label: 'ページ数', thStyle: { width: "10%" } },
+                    { key: 'publishedDate', label: '発行年月日', thStyle: { width: "20%" } }
+                ],
+                items: [],
+                isBusyForCondition: false,
+                conditionFields: [{ key: 'conditionName', label: '条件名称' }, { key: 'bookNameCondition', label: 'ブック名' }, { key: 'authorNameCondition', label: '著作者' }, { key: 'publishedDateCondition', label: '発行年月日' }],
+                conditionItems: [],
+                conditionName: '',
+                showAlertMsg: false,
+                searchMsgs: [],
+                showAlertMsgType: '',
+                showSaveConditionAlertMsg: false,
+                saveConditionAlertMsgType: '',
+                saveConditionMsgs: [],
+                showSaveBookAlertMsg: false,
+                saveBookAlertMsgType: '',
+                saveBookMsgs: [],
+                selected: [],
+                dismissSecs: 10,
+                dismissCountDown: 0,
+                deleteInactiveFlag: true
+            },
+            watch: {
+                selected: function (newValue, oldValue) {
+                    this.deleteInactiveFlag = (newValue.length == 0);
+                }
             },
             methods: {
+                isEmpty(p) {
+                    return p == undefined || p == null || p == '';
+                },
+                async doSearch() {
+                    const params = this.searchInfo;
+                    const { data } = await axios.get('/book/findBooks', { params: params })
+                    this.items = data.data;
+                },
+                doSaveSearchCoditions() {
+                    console.log('Do SaveSearchCoditions!');
+                },
+                editBook(id) {
+                    this.showAlertMsg = false;
+                    axios.get('/book/' + id).then(function (res) {
+                        vBookList.$bvModal.show('bv-modal-create-book');
+                        vBookList.insertBean = res.data.data;
+                    });
+                },
+                saveSearchConditions() {
+                    if (this.searchInfo.bookName == '' && this.searchInfo.authorName == '' && this.searchInfo.publishedDate == undefined) {
+                        this.searchMsgs = [];
+                        this.showAlertMsgType = 'danger';
+                        this.searchMsgs.push("検索条件設定していない");
+                        this.showAlertMsg = true;
+                    } else {
+                        this.$bvModal.show('bv-modal-save-conditions');
+                    }
+                },
+                async selectCondition() {
+                    const params = this.searchInfo;
+                    const { data } = await axios.get('/bookcondition/book-conditions', { params: params })
+                    this.conditionItems = data.data;
+                    this.$bvModal.show('bv-modal-search-conditions')
+                },
+                handlerDoubleClick(item, index, event) {
+                    this.searchInfo.bookName = item.bookNameCondition;
+                    this.searchInfo.authorName = item.authorNameCondition;
+                    this.searchInfo.publishedDate = item.publishedDateCondition?.replaceAll('/', '-');
+                    this.closeConditionSelectModel();
+                },
+                closeConditionSelectModel() {
+                    this.$bvModal.hide('bv-modal-search-conditions');
+                },
+                saveCondition(bvModalEvent) {
+
+                    if (this.isEmpty(this.conditionName)) {
+                        this.showSaveConditionAlertMsg = true;
+                        this.saveConditionAlertMsgType = 'danger';
+                        this.saveConditionMsgs.push('検索条件名称が入力していない。');
+                        bvModalEvent.preventDefault();
+                        return;
+                    }
+                    const params = {
+                        conditionName: this.conditionName,
+                        bookNameCondition: this.searchInfo.bookName,
+                        authorNameCondition: this.searchInfo.authorName,
+                        publishedDateCondition: this.searchInfo.publishedDate
+                    };
+                    axios.post('/bookcondition/save', params).then(function (response) {
+
+                        if (response.data.code == 0) {
+                            vBookList.showAlertMsg = true;
+                            vBookList.searchMsgs.push('【' + vBookList.conditionName + '】を保存完了しました。');
+                            vBookList.showAlertMsgType = 'info'
+                        } else {
+                            if (response.data.code == 99 && response.data.messages.length > 0) {
+
+                                vBookList.showSaveConditionAlertMsg = true;
+                                vBookList.saveConditionMsgs = response.data.messages;
+                                vBookList.saveConditionAlertMsgType = 'danger'
+                            }
+                        }
+                    });
+                },
+                /**
+                 * saveCondition Modal開くと閉じる時点のcallbackメソッド
+                 */
+                resetSaveConditionModal() {
+                    this.distroySaveConditionAlertAlert();
+                },
+                /**
+                 * b-alert閉じる時点のcallbackメソッド
+                 */
+                distroySearchMsgsAlert() {
+                    this.searchMsgs = [];
+                },
+
+                distroySaveConditionAlertAlert() {
+                    this.conditionName = '';
+                    this.showSaveConditionAlertMsg = false;
+                    this.saveConditionMsgs = [];
+                    this.saveConditionAlertMsgType = 'info';
+                },
+                createBook(bvModalEvent) {
+                    this.isBusy = true;
+                    this.distroySaveBookAlertAlert();
+                    let hasErrors = false
+                    if (this.isEmpty(this.insertBean.bookName)) {
+                        hasErrors = true;
+                        this.saveBookMsgs.push('ブック名が入力していない。');
+                    }
+                    if (this.isEmpty(this.insertBean.volumeNum)) {
+                        hasErrors = true;
+                        this.saveBookMsgs.push('ページ数が入力していない。');
+                    }
+                    if (this.isEmpty(this.insertBean.authorName)) {
+                        hasErrors = true;
+                        this.saveBookMsgs.push('著作者が入力していない。');
+                    }
+                    if (this.isEmpty(this.insertBean.publishedDate)) {
+                        hasErrors = true;
+                        this.saveBookMsgs.push('発行年月日が入力していない。');
+                    }
+                    if (hasErrors) {
+
+                        this.showSaveBookAlertMsg = true;
+                        this.saveBookAlertMsgType = 'danger';
+                        bvModalEvent.preventDefault();
+                        return
+                    }
+                    let params = this.insertBean;
+                    params.publishedDate = params.publishedDate.replaceAll('-', '/');
+                    axios.post('/book/save', this.insertBean).then(function (response) {
+
+                        if (response.data.code == 0) {
+                            vBookList.showAlertMsg = true;
+                            vBookList.searchMsgs.push('【' + vBookList.insertBean.bookName + '】を保存完了しました。');
+                            vBookList.showAlertMsgType = 'info';
+                            vBookList.showAlert();
+                            axios.get('/book/books').then(function (res) {
+
+                                vBookList.items = res.data.data;
+                            });
+                        } else if (response.data.code == 99 && response.data.messages.length > 0) {
+
+                            vBookList.showSaveBookAlertMsg = true;
+                            vBookList.saveBookMsgs = response.data.messages;
+                            vBookList.saveBookAlertMsgType = 'danger';
+                        }
+                        vBookList.isBusy = false;
+                    });
+                },
+                cancelCreateBook() {
+                    this.isBusy = false;
+                },
+                resetSaveBookModal() {
+                    console.log('reset');
+                    this.insertBean = {
+                        bookName: '',
+                        volumeNum: '',
+                        authorName: '',
+                        publishedDate: ''
+                    };
+                    this.distroySaveBookAlertAlert();
+                },
+                distroySaveBookAlertAlert() {
+                    this.showSaveBookAlertMsg = false;
+                    this.saveBookMsgs = [];
+                    console.log(this.saveBookMsgs);
+                    this.saveBookAlertMsgType = '';
+                },
+                onRowSelected(items) {
+                    this.selected = items;
+                },
+                deleteBooks() {
+                    if (this.selected.length > 0) {
+                        axios.delete('/book/delete', { data: this.selected }).then((res) => {
+                            console.log('Before');
+                            this.items = this.items.filter((s) => !this.selected.includes(s));
+                            console.log(this.selected);
+                        });
+                    }
+                },
+                countDownChanged(dismissCountDown) {
+                    this.dismissCountDown = dismissCountDown;
+                },
+                showAlert() {
+                    this.dismissCountDown = this.dismissSecs;
+                }
             },
             async mounted() {
+                const { data } = await axios.get('/book/books');
+                this.items = data.data;
             }
         })
     </script>
